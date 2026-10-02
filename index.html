@@ -1194,7 +1194,7 @@ const captionFor = file => {
     const file = list[n % list.length], cap = captionFor(file);
     const lane = n % lanes, k = Math.floor(n / lanes), depth = laneDepth[lane];
     const x = (lane + .5) / lanes * 100 + (Math.random() - .5) * 2;
-    const w = Math.round((isWide ? 190 : 130) * depth), t = (isWide ? 26 : 22) / depth;
+    const w = Math.round((isWide ? 190 : 130) * depth), t = (isWide ? 26 : 13) / depth   // a little quicker on phones so photos keep coming;
     html += `<button class="floater" type="button" data-file="${esc(file)}" aria-label="See photo${cap.title ? ": " + esc(cap.title) : ""}"
       style="--x:${x}%;--w:${w}px;--t:${t.toFixed(1)}s;--dl:${(-(k / perLane) * t - (lane * 0.37 % 1) * t / perLane).toFixed(1)}s;--z:${Math.round(depth * 10)};--o:${depth < .7 ? .8 : 1};--b:${depth < .7 ? .6 : 0}px;--r:${(Math.random() * 8 - 4).toFixed(1)}deg;--sw:${(3 + Math.random() * 2).toFixed(1)}s;--ry:${Math.round(Math.random() * 70)}%">
       <span class="sway" style="display:block"><figure class="pol-mini">${photo(file, n, cap.title || "Our photo")}${cap.title ? `<figcaption>${esc(cap.title)}</figcaption>` : ""}</figure></span></button>`;
@@ -1434,8 +1434,21 @@ const TRACK_FOR = {
 // optional real audio files per track (audio/dream.mp3, audio/letter.mp3 ...); missing files just use the built-in tune
 const trackFiles = {};
 Object.keys(TRACKS).forEach(k => {
-  const el = new Audio(); el.loop = true; el.preload = "auto";
+  const el = new Audio(); el.loop = false; el.preload = "auto";
   el.addEventListener("canplaythrough", () => { trackFiles[k] = el; }, { once: true });
+  // smooth loop: fade out over the last 2.5 s, restart, fade back in
+  el.addEventListener("timeupdate", () => {
+    if (el.paused || el.dataset.looping || !el.duration || el.duration < 8) return;
+    if (el.duration - el.currentTime < 2.5) {
+      el.dataset.looping = "1";
+      fadeFile(el, 0, 2300, () => {
+        if (el.paused) { delete el.dataset.looping; return; }
+        el.currentTime = 0;
+        fadeFile(el, .55, 1800, () => { delete el.dataset.looping; });
+      });
+    }
+  });
+  el.addEventListener("ended", () => { el.currentTime = 0; el.play().catch(() => {}); });
   el.src = "audio/" + k + ".mp3";
 });
 let musicOn = false, nowPlaying = null, nowKey = null;
@@ -1516,7 +1529,7 @@ function playTrack(key){
   if (backup) { backup.stop(); backup = null; }
   clearTimeout(ytWatch);
   const song = ytSongs[key];
-  if (song && ytOn && !ytBad[key]) {
+  if (song && ytOn && !ytBad[key] && !trackFiles[key]) {   // your own mp3 in audio/ always wins over YouTube
     // built-in tune plays right away; it stops the moment YouTube is really playing
     backup = startSynth(key);
     if (!ytReady) return;                     // onReady will call playTrack again
