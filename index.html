@@ -191,7 +191,7 @@
   .candle:nth-child(3n+1){--cc:#F49AB8}.candle:nth-child(3n+2){--cc:#BFE0FF}.candle:nth-child(3n){--cc:#CDB8F2}
   .candle:nth-child(even){height:38px}
   .candle::before{content:"";position:absolute;left:50%;top:-6px;width:1.5px;height:6px;margin-left:-.75px;background:#2a2233}
-  .candle-hit{position:absolute;left:50%;bottom:0;width:40px;height:100px;margin-left:-20px}
+  .candle-hit{position:absolute;left:50%;bottom:0;width:56px;height:120px;margin-left:-28px}
   .flame{position:absolute;left:50%;top:-30px;width:12px;height:24px;margin-left:-6px;border-radius:50% 50% 45% 45%/65% 65% 35% 35%;
     background:radial-gradient(ellipse at 50% 80%,#fff 0%,#FFF1C4 22%,#FFD27A 48%,#FF9A3D 78%,rgba(255,120,40,0) 100%);
     transform-origin:50% 100%;animation:flick 2.2s ease-in-out infinite;box-shadow:0 0 22px 8px rgba(255,190,110,.45);pointer-events:none}
@@ -205,6 +205,7 @@
   .cake.done .cake-glow{opacity:0}
   .cut-layer{position:absolute;left:-70px;right:-70px;top:-56px;bottom:-80px;z-index:6;pointer-events:none;touch-action:none;cursor:crosshair}
   .cake.can-cut .cut-layer{pointer-events:auto}
+  #cakeHint{padding:6px 16px;border-radius:999px;background:rgba(20,14,32,.42);color:#FFF6EE;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
   .cut-guide{position:absolute;left:50%;top:4%;bottom:4%;width:0;margin-left:-1.5px;border-left:3px dashed rgba(255,255,255,.85);z-index:5;pointer-events:none;
     filter:drop-shadow(0 0 6px rgba(255,216,154,.95));animation:guidePulse 1.6s ease-in-out infinite}
   @keyframes guidePulse{0%,100%{opacity:.55}50%{opacity:1}}
@@ -242,7 +243,7 @@
   .mini-env{position:absolute;left:50%;top:40%;width:110px;height:72px;margin-left:-55px;border-radius:6px;background:#FFF6EE;box-shadow:0 10px 20px -6px rgba(0,0,0,.35);z-index:2;opacity:0;transform:translateY(20px) scale(.6);overflow:hidden}
   .mini-env::before{content:"";position:absolute;left:0;right:0;top:0;height:60%;background:#EADFF3;clip-path:polygon(0 0,100% 0,50% 100%)}
   .gift.open .mini-env{animation:float-up 1.2s .5s cubic-bezier(.2,.9,.2,1.1) forwards}
-  @keyframes float-up{to{opacity:1;transform:translateY(-120px) scale(1) rotate(-6deg)}}
+  @keyframes float-up{to{opacity:1;transform:translateY(-62px) scale(1) rotate(-6deg)}}
 
   /* ---- envelope ---- */
   .envelope{position:relative;width:min(320px,82vw);aspect-ratio:3/2;max-width:100%;cursor:pointer;perspective:1000px;transition:opacity .6s, transform .8s}
@@ -333,6 +334,9 @@
   .swipe-hint{font-family:var(--hand);font-size:1.4rem;color:var(--fg-soft)}
 
   /* ---- scratch card ---- */
+  .scroll-cue{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:46;padding:10px 18px;border-radius:999px;
+    font-family:var(--hand);font-size:1.3rem;color:#3A2A4F;background:rgba(255,246,238,.9);box-shadow:0 12px 26px -10px rgba(0,0,0,.45);animation:cueBob 1.4s ease-in-out infinite}
+  @keyframes cueBob{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,6px)}}
   .scratch-wrap{display:flex;flex-wrap:wrap;gap:22px;justify-content:center;width:100%}
   .scratch{position:relative;width:min(320px,86vw);aspect-ratio:1.55/1;max-width:100%;border-radius:22px;overflow:hidden;box-shadow:0 30px 60px -24px rgba(58,42,79,.55)}
   .coupon{position:absolute;inset:0;background:linear-gradient(135deg,#FFF6EE,#FFE3EC 60%,#EFE4FF);display:grid;place-content:center;gap:6px;text-align:center;padding:20px}
@@ -836,6 +840,7 @@
   <div class="stack" style="max-width:1100px">
     <h2 class="split">Scratch your <em>surprises</em></h2>
     <div class="scratch-wrap" id="scratchWrap"></div>
+    <button class="scroll-cue" id="scrollCue" type="button" hidden>more surprises below ↓</button>
     <p class="soft" id="scratchHint" aria-live="polite" style="max-width:48ch">Scratch a card with your finger ✨</p>
     <div class="row-actions">
       <button class="btn next" id="scratchNext" data-next type="button">Next</button>
@@ -1003,6 +1008,8 @@
    pictures in it named 1.jpg, 2.jpg, 3.jpg ... (the page shows which number
    goes where until the photo is there). You can also change the names below.
    ======================================================================== */
+// letter & promise text is stored encoded so it can't be read by peeking at the page code
+const dec = b => new TextDecoder().decode(Uint8Array.from(atob(b), c => c.charCodeAt(0)));
 const CONFIG = {
   name: "Keer",
   from: "Abhii",
@@ -1019,15 +1026,15 @@ const CONFIG = {
 
   letterGreeting: "❤️ Dear Keer,",
   letter: [
-    "Happy Birthday! ❤️🎂",
-    "It’s been two years since we became friends 🤝, and somewhere along the way, this friendship became something really special to me. 💛",
-    "Thank you for all the random conversations, stupid jokes, endless laughs, advice, and all the little memories we’ve made together. ✨ More than anything, thank you for always caring ❤️, listening to me, supporting me, and being there whenever I needed you. 🫶",
-    "You’ve seen both the good and annoying sides of me and still somehow decided to stick around. I may not say it often, but I’m genuinely grateful to have you in my life. 💛",
-    "I hope this year brings you all the happiness 😊, peace 🕊️, success 🌟, and everything you deserve. And no matter where life takes us, I hope we always have this friendship 🤝 and many more memories to look back on and laugh about. ❤️",
-    "Here’s to two amazing years of friendship 🥂, countless memories 📸, and many, many more to come. ❤️",
-    "Happy Birthday, Keer! 🎂🎉💛"
-  ],
-  letterSign: "Your Abhi 🤝",
+    "SGFwcHkgQmlydGhkYXkhIOKdpO+4j/CfjoI=",
+    "SXTigJlzIGJlZW4gdHdvIHllYXJzIHNpbmNlIHdlIGJlY2FtZSBmcmllbmRzIPCfpJ0sIGFuZCBzb21ld2hlcmUgYWxvbmcgdGhlIHdheSwgdGhpcyBmcmllbmRzaGlwIGJlY2FtZSBzb21ldGhpbmcgcmVhbGx5IHNwZWNpYWwgdG8gbWUuIPCfkps=",
+    "VGhhbmsgeW91IGZvciBhbGwgdGhlIHJhbmRvbSBjb252ZXJzYXRpb25zLCBzdHVwaWQgam9rZXMsIGVuZGxlc3MgbGF1Z2hzLCBhZHZpY2UsIGFuZCBhbGwgdGhlIGxpdHRsZSBtZW1vcmllcyB3ZeKAmXZlIG1hZGUgdG9nZXRoZXIuIOKcqCBNb3JlIHRoYW4gYW55dGhpbmcsIHRoYW5rIHlvdSBmb3IgYWx3YXlzIGNhcmluZyDinaTvuI8sIGxpc3RlbmluZyB0byBtZSwgc3VwcG9ydGluZyBtZSwgYW5kIGJlaW5nIHRoZXJlIHdoZW5ldmVyIEkgbmVlZGVkIHlvdS4g8J+rtg==",
+    "WW914oCZdmUgc2VlbiBib3RoIHRoZSBnb29kIGFuZCBhbm5veWluZyBzaWRlcyBvZiBtZSBhbmQgc3RpbGwgc29tZWhvdyBkZWNpZGVkIHRvIHN0aWNrIGFyb3VuZC4gSSBtYXkgbm90IHNheSBpdCBvZnRlbiwgYnV0IEnigJltIGdlbnVpbmVseSBncmF0ZWZ1bCB0byBoYXZlIHlvdSBpbiBteSBsaWZlLiDwn5Kb",
+    "SSBob3BlIHRoaXMgeWVhciBicmluZ3MgeW91IGFsbCB0aGUgaGFwcGluZXNzIPCfmIosIHBlYWNlIPCflYrvuI8sIHN1Y2Nlc3Mg8J+MnywgYW5kIGV2ZXJ5dGhpbmcgeW91IGRlc2VydmUuIEFuZCBubyBtYXR0ZXIgd2hlcmUgbGlmZSB0YWtlcyB1cywgSSBob3BlIHdlIGFsd2F5cyBoYXZlIHRoaXMgZnJpZW5kc2hpcCDwn6SdIGFuZCBtYW55IG1vcmUgbWVtb3JpZXMgdG8gbG9vayBiYWNrIG9uIGFuZCBsYXVnaCBhYm91dC4g4p2k77iP",
+    "SGVyZeKAmXMgdG8gdHdvIGFtYXppbmcgeWVhcnMgb2YgZnJpZW5kc2hpcCDwn6WzLCBjb3VudGxlc3MgbWVtb3JpZXMg8J+TuCwgYW5kIG1hbnksIG1hbnkgbW9yZSB0byBjb21lLiDinaTvuI8=",
+    "SGFwcHkgQmlydGhkYXksIEtlZXIhIPCfjoLwn46J8J+Smw=="
+  ].map(dec),
+  letterSign: "Your Abhii 🤝",
 
   memories: [
     { photo: "4.jpg", caption: "Twinning in pink", when: "" },
@@ -1084,19 +1091,19 @@ const CONFIG = {
 
   // the very last screen: Abhii's promise (each item fades in as its own line)
   promise: [
-    "You've asked me so many times, and I've finally decided to listen.",
-    "Today, I want to make a promise to you: **I'm quitting smoking, for good.** 🚭",
-    "Not because I have to, but because I want to live a healthier, longer life 🌱 and be there for my daughter as she grows up. 👧💕",
-    "Thank you for always caring and never giving up on me. 💛"
-  ],
-  promiseSign: "Your Friend,\nAbhi 🤝",
+    "WW91J3ZlIGFza2VkIG1lIHNvIG1hbnkgdGltZXMsIGFuZCBJJ3ZlIGZpbmFsbHkgZGVjaWRlZCB0byBsaXN0ZW4u",
+    "VG9kYXksIEkgd2FudCB0byBtYWtlIGEgcHJvbWlzZSB0byB5b3U6ICoqSSdtIHF1aXR0aW5nIHNtb2tpbmcsIGZvciBnb29kLioqIPCfmq0=",
+    "Tm90IGJlY2F1c2UgSSBoYXZlIHRvLCBidXQgYmVjYXVzZSBJIHdhbnQgdG8gbGl2ZSBhIGhlYWx0aGllciwgbG9uZ2VyIGxpZmUg8J+MsSBhbmQgYmUgdGhlcmUgZm9yIG15IGRhdWdodGVyIGFzIHNoZSBncm93cyB1cC4g8J+Rp/CfkpU=",
+    "VGhhbmsgeW91IGZvciBhbHdheXMgY2FyaW5nIGFuZCBuZXZlciBnaXZpbmcgdXAgb24gbWUuIPCfkps="
+  ].map(dec),
+  promiseSign: "Your Friend,\nAbhii 🤝",
 
   // the very last screen: end credits, then a thank-you
   credits: [
     ["Starring", "Keer"],
     ["Written & directed by", "Abhii"],
     ["Filmed in", "all our favourite places"],
-    ["Music", "Happy Birthday, on a music box"],
+    ["Music", "Harris Jayaraj, Anirudh, Mickey J. Meyer & friends"],
     ["Special effects", "your laugh"],
     ["Special thanks", "to you, for being you"]
   ],
@@ -1232,6 +1239,9 @@ const captionFor = file => {
     lb.hidden = false;
   });
   const close = () => { lb.hidden = true; field.classList.remove("paused"); };
+  // hold still while she's touching, so a moving photo is easy to tap
+  field.addEventListener("pointerdown", () => field.classList.add("paused"));
+  ["pointerup", "pointercancel", "pointerleave"].forEach(ev => field.addEventListener(ev, () => { if (lb.hidden) setTimeout(() => { if (lb.hidden) field.classList.remove("paused"); }, 250); }));
   lb.addEventListener("click", close);
   addEventListener("keydown", e => { if (e.key === "Escape" && !lb.hidden) close(); });
 })();
@@ -1825,6 +1835,7 @@ function go(i){
   document.body.classList.toggle("promise-on", sc.dataset.id === "promise");
   document.body.classList.toggle("cd-on", sc.dataset.id === "countdown");
   document.body.classList.toggle("thanks-on", sc.dataset.id === "thanks");
+  if (sc.dataset.id !== "scratch" && $("#scrollCue")) $("#scrollCue").hidden = true;
   sc.scrollTop = 0;
   document.body.classList.remove("scrolled");
   $("#progress").style.width = (i / (scenes.length - 1) * 100) + "%";
@@ -1948,7 +1959,7 @@ enter.intro = async () => {
   await Promise.race([document.fonts ? document.fonts.ready : Promise.resolve(), wait(1500)]);
   await wait(500);
   let fast = false;
-  scenes[0].addEventListener("click", () => { fast = true; }, { once: true });
+  scenes[byId("intro")].addEventListener("pointerdown", () => { fast = true; }, { once: true });
   for (let li = 0; li < CONFIG.intro.length; li++) {
     lines[li].appendChild(caret);
     for (const c of [...CONFIG.intro[li]]) { caret.before(c); if (!reduce && !fast) await wait(c === "…" ? 400 : 55); }
@@ -2002,7 +2013,7 @@ function wished(){
   scenes[byId("cake")].dataset.sky = "blush";
   setSky("blush");
   setTimeout(() => { celebrate(true); chime(); }, 500);
-  setTimeout(enableCut, 1400);
+  setTimeout(enableCut, 3200);
 }
 // cut the cake: knife slides down the middle, cake splits into two halves
 function doCut(){
@@ -2331,7 +2342,19 @@ function refreshScratch(){
   pill.textContent = waiting ? `🔒 Next surprise in ${mmss(waiting)}` : "🎁 Your next surprise is ready!";
 }
 $("#secondPill").addEventListener("click", () => go(byId("scratch")));
-enter.scratch = () => setTimeout(() => { $$(".scratch").forEach(setupCard); refreshScratch(); }, 80);
+enter.scratch = () => setTimeout(() => { $$(".scratch").forEach(setupCard); refreshScratch(); updateScrollCue(); }, 80);
+// on phones the cards stack: show a "more below" cue until the last card is on screen
+function updateScrollCue(){
+  const sc = scenes[byId("scratch")], cards = $$(".scratch"), last = cards[cards.length - 1];
+  if (!last || current !== byId("scratch")) { $("#scrollCue").hidden = true; return; }
+  const r = last.getBoundingClientRect();
+  $("#scrollCue").hidden = r.top < innerHeight - 60;
+}
+scenes[byId("scratch")].addEventListener("scroll", updateScrollCue, { passive: true });
+addEventListener("resize", updateScrollCue);
+$("#scrollCue").addEventListener("click", () => {
+  const cards = $$(".scratch"); cards[cards.length - 1].scrollIntoView({ behavior: "smooth", block: "center" });
+});
 refreshScratch();
 setInterval(refreshScratch, 1000);
 
@@ -2435,9 +2458,12 @@ $("#askQ").textContent = CONFIG.askQuestion;
   const arena = $("#askArena"), no = $("#noBtn"), yes = $("#yesBtn");
   const quips = ["Are you sure? 🤨", "Nope 😜", "Try again 😏", "Not happening 🙈", "Too slow! 🏃", "Just say yes 💛"];
   let dodges = 0, answered = false;
+  let lastDodge = 0;
   function dodge(e){
     if (e) e.preventDefault();
     if (answered) return;
+    if (performance.now() - lastDodge < 450) return;   // pointerdown + click from one tap count once
+    lastDodge = performance.now();
     dodges++;
     no.textContent = quips[(dodges - 1) % quips.length];
     const aw = arena.clientWidth, ah = arena.clientHeight, bw = no.offsetWidth, bh = no.offsetHeight;
@@ -2570,7 +2596,12 @@ enter.thanks = () => { setTimeout(() => { if (current === byId("thanks")) celebr
 
 /* start. A link ending in #4 (or #cake) jumps to that screen, handy for previewing */
 const h = location.hash.slice(1);
-const jump = /^\d+$/.test(h) ? +h - 1 : byId(h === "sealtest" ? "promise" : h);
+// only devices that used a test link (#open / #test) may jump to screens before the birthday
+try { if (h === "open" || h === "test") localStorage.setItem("keer-dev", "1"); } catch (e) {}
+const devDevice = (() => { try { return localStorage.getItem("keer-dev") === "1"; } catch (e) { return false; } })();
+const birthdayPassed = Date.now() >= new Date(CONFIG.birthday).getTime();
+let jump = /^\d+$/.test(h) ? +h - 1 : byId(h === "sealtest" ? "promise" : h);
+if (!birthdayPassed && !devDevice) jump = -1;
 if (jump === 1) go(1);
 else if (jump >= 2) {
   document.body.classList.add("lit"); buildLights();
