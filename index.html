@@ -1369,72 +1369,9 @@ const hz = m => 440 * Math.pow(2, (m - 69) / 12);
 /* ---------- music for each part of the story ----------
    Each track schedules one loop and returns its length in seconds.
    To use your own audio for a part, put a file in the audio folder with the track's name,
-   e.g. audio/letter.mp3, and it plays instead of the built-in tune. */
-function birthdayTune(dest, t, beat, vol, padVol, bass){
-  let x = t;
-  SONG.forEach(([n, b]) => { bell(NOTE[n], x, b * beat, vol, dest); x += b * beat; });
-  CHORDS.forEach((ch, k) => {
-    const ct = t + (1 + k * 3) * beat;
-    ch.forEach(f => pad(f, ct, 3 * beat, padVol, dest));
-    if (bass) for (let q = 0; q < 3; q++) bell(ch[0], ct + q * beat, beat, .1, dest);
-  });
-  return x - t;
-}
-const TRACKS = {
-  // dreamy music box arpeggios: the night, the lights, the first photo
-  dream(dest, t){
-    const chords = [[60, 64, 67, 71], [57, 60, 64, 67], [53, 57, 60, 64], [55, 59, 62, 67]], step = .3, order = [0, 1, 2, 3, 2, 1, 2, 3];
-    chords.forEach((c, k) => {
-      const ct = t + k * 8 * step;
-      order.forEach((n, q) => bell(hz(c[n] + 12), ct + q * step, step, q === 0 ? .1 : .065, dest));
-      pad(hz(c[0] - 12), ct, 8 * step, .05, dest); pad(hz(c[2] - 12), ct, 8 * step, .03, dest);
-    });
-    return chords.length * 8 * step;
-  },
-  // Happy Birthday for cutting the cake
-  cake: (dest, t) => birthdayTune(dest, t, .56, .2, .06, false) + 2,
-  // scratch cards, gift
-  birthday: (dest, t) => birthdayTune(dest, t, .56, .2, .06, false) + 2,
-  // slow and tender: the letter and the photo after it
-  tender(dest, t){
-    const bars = [[[53, 57, 60], [[72, 1.6], [69, 1.6]]], [[52, 55, 60], [[67, 1.6], [72, 1.6]]], [[50, 53, 57], [[69, 1.6], [65, 1.6]]], [[46, 50, 53], [[67, 3.2]]]];
-    let x = t;
-    bars.forEach(([ch, mel]) => {
-      ch.forEach(m => pad(hz(m), x, 3.2, .045, dest));
-      pad(hz(ch[0] - 12), x, 3.2, .05, dest);
-      let y = x; mel.forEach(([m, d]) => { bell(hz(m), y, d, .11, dest); y += d; });
-      x += 3.2;
-    });
-    return x - t;
-  },
-  // gentle waltz: the photo wall, the floating memories
-  memories(dest, t){
-    const beat = .45, bars = [[55, 59, 62], [55, 59, 62], [52, 55, 59], [52, 55, 59], [48, 52, 55], [48, 52, 55], [50, 54, 57], [50, 54, 57]];
-    const mel = [71, 74, 71, 67, 72, 71, 69, 74];
-    bars.forEach((c, k) => {
-      const bt = t + k * 3 * beat;
-      bell(hz(c[0] - 12), bt, beat, .11, dest);
-      [1, 2].forEach(q => { bell(hz(c[1]), bt + q * beat, beat, .05, dest); bell(hz(c[2]), bt + q * beat, beat, .045, dest); });
-      bell(hz(mel[k]), bt, 3 * beat, .12, dest);
-    });
-    return bars.length * 3 * beat;
-  },
-  // bright and bouncy: the finale and the question
-  party: (dest, t) => birthdayTune(dest, t, .4, .22, .05, true) + .8,
-  // very soft and still: the promise
-  vow(dest, t){
-    const chords = [[57, 60, 64], [53, 57, 60], [48, 55, 64], [55, 59, 62]];
-    chords.forEach((c, k) => {
-      const ct = t + k * 4;
-      c.forEach(m => pad(hz(m), ct, 4, .04, dest));
-      pad(hz(c[0] - 12), ct, 4, .045, dest);
-      bell(hz(c[2] + 12), ct + 1.2, 2, .06, dest);
-    });
-    return chords.length * 4;
-  },
-  // slow music box Happy Birthday for the end credits
-  credits: (dest, t) => birthdayTune(dest, t, .74, .14, .05, false) + 3
-};
+   e.g. audio/letter.mp3, and it plays instead of the YouTube song. */
+// the track names: each can have its own file in audio/ (no built-in tune any more)
+const TRACKS = ["dream", "cake", "birthday", "tender", "memories", "party", "vow", "credits"];
 const TRACK_FOR = {
   intro: "dream", lights: "dream", photo1: "dream",
   cake: "cake", scratch: "birthday", gift: "birthday",
@@ -1444,9 +1381,9 @@ const TRACK_FOR = {
   promise: "vow",
   thanks: "credits"
 };
-// optional real audio files per track (audio/dream.mp3, audio/letter.mp3 ...); missing files just use the built-in tune
+// optional real audio files per track (audio/dream.mp3, audio/letter.mp3 ...); missing files just stay quiet
 const trackFiles = {};
-Object.keys(TRACKS).forEach(k => {
+TRACKS.forEach(k => {
   const el = new Audio(); el.loop = false; el.preload = "auto";
   el.addEventListener("canplaythrough", () => { trackFiles[k] = el; }, { once: true });
   // smooth loop: fade out over the last 2.5 s, restart, fade back in
@@ -1518,22 +1455,7 @@ function startSynth(key){
     file.play().then(() => fadeFile(file, .55, 1500)).catch(() => {});
     return { stop(){ fadeFile(file, 0, 1200, () => file.pause()); } };
   }
-  const g = ac.createGain();
-  g.gain.setValueAtTime(0, ac.currentTime);
-  g.gain.linearRampToValueAtTime(1, ac.currentTime + 1.5);
-  g.connect(master);
-  let timer;
-  (function loop(start){
-    const len = TRACKS[key](g, start);
-    timer = setTimeout(() => loop(start + len), Math.max(0, (start + len - ac.currentTime - 1.5) * 1000));
-  })(ac.currentTime + .3);
-  return { stop(){
-    clearTimeout(timer);
-    g.gain.cancelScheduledValues(ac.currentTime);
-    g.gain.setValueAtTime(g.gain.value, ac.currentTime);
-    g.gain.linearRampToValueAtTime(0, ac.currentTime + 1.2);
-    setTimeout(() => g.disconnect(), 1400);
-  } };
+  return null;                                // no built-in tune: silence until a real song plays
 }
 function playTrack(key){
   if (!musicOn || !key || key === nowKey) return;
