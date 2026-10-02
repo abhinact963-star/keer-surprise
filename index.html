@@ -2037,7 +2037,7 @@ try {
     host.className = "cake3d";
     $("#cake").appendChild(host);
     cake3d = createCake3D(host, {
-      reduce, candles: CONFIG.candles,
+      reduce, candles: CONFIG.candles, name: CONFIG.name,
       isVisible: () => current === byId("cake"),
       onCandleTap: i => { const c = $$(".candle")[i]; if (c) blowOut(c); }
     });
