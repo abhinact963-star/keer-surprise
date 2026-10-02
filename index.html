@@ -2011,8 +2011,9 @@ function wished(){
   stopMic();
   $("#cakeHint").textContent = "Now let's cut the cake 🎂";
   scenes[byId("cake")].dataset.sky = "blush";
+  if (cake3d) cake3d.spin(true);
   setSky("blush");
-  setTimeout(() => { celebrate(true); chime(); }, 500);
+  setTimeout(() => { softSpray(); setTimeout(softSpray, 450); chime(); }, 500);
   setTimeout(enableCut, 3200);
 }
 // cut the cake: knife slides down the middle, cake splits into two halves
@@ -2118,7 +2119,7 @@ try {
       isVisible: () => current === byId("cake"),
       onCandleTap: i => { const c = $$(".candle")[i]; if (c) blowOut(c); }
     });
-    if (cake3d) $("#cake").classList.add("is3d"); else host.remove();
+    if (cake3d) { $("#cake").classList.add("is3d"); cake3d.spin(false); } else host.remove();
   }
 } catch (e) { cake3d = null; }
 
@@ -2467,13 +2468,22 @@ $("#askQ").textContent = CONFIG.askQuestion;
     dodges++;
     no.textContent = quips[(dodges - 1) % quips.length];
     const aw = arena.clientWidth, ah = arena.clientHeight, bw = no.offsetWidth, bh = no.offsetHeight;
-    const cur = { x: no.offsetLeft, y: no.offsetTop }, yb = { x: yes.offsetLeft + yes.offsetWidth / 2, y: yes.offsetTop + yes.offsetHeight / 2 };
+    const cur = { x: no.offsetLeft, y: no.offsetTop };
+    // Yes grows with every dodge: keep No well clear of Yes at its next size
+    const ys = Math.min(1.6, 1 + dodges * .08), gap = 22;
+    const ycx = yes.offsetLeft + yes.offsetWidth / 2, ycy = yes.offsetTop + yes.offsetHeight / 2;
+    const yhw = yes.offsetWidth * ys / 2 + gap, yhh = yes.offsetHeight * ys / 2 + gap;
+    const hitsYes = (x, y) => Math.abs(x + bw / 2 - ycx) < yhw + bw / 2 && Math.abs(y + bh / 2 - ycy) < yhh + bh / 2;
     let x, y, tries = 0;
     do {
       x = Math.random() * Math.max(0, aw - bw);
       y = Math.random() * Math.max(0, ah - bh);
       tries++;
-    } while (tries < 40 && (Math.hypot(x - cur.x, y - cur.y) < 120 || Math.hypot(x + bw / 2 - yb.x, y + bh / 2 - yb.y) < 120));
+    } while (tries < 60 && (Math.hypot(x - cur.x, y - cur.y) < 100 || hitsYes(x, y)));
+    if (hitsYes(x, y)) {                        // tiny screen: put No on whichever side of Yes has room
+      x = ycx > aw / 2 ? 0 : Math.max(0, aw - bw);
+      y = ycy > ah / 2 ? 0 : Math.max(0, ah - bh);
+    }
     no.style.left = x + "px"; no.style.top = y + "px";
     yes.style.setProperty("--ys", Math.min(1.6, 1 + dodges * .08));
     $("#askHint").textContent = dodges > 3 ? "The No button doesn't want to be pressed 😂" : "Hmm? Try the other one 😌";
