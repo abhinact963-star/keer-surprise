@@ -1543,8 +1543,7 @@ function playTrack(key){
   clearTimeout(ytWatch);
   const song = ytSongs[key];
   if (song && ytOn && !ytBad[key] && !trackFiles[key]) {   // your own mp3 in audio/ always wins over YouTube
-    // built-in tune plays right away; it stops the moment YouTube is really playing
-    backup = startSynth(key);
+    // no built-in tune: only the chosen songs play
     if (!ytReady) return;                     // onReady will call playTrack again
     ytKey = key;
     $("#np").classList.remove("off");
@@ -1553,7 +1552,8 @@ function playTrack(key){
     nowPlaying = { stop(){ if (ytKey === key) { ytKey = null; try { yt.pauseVideo(); } catch (e) {} } } };
     return;
   }
-  nowPlaying = startSynth(key);
+  // your own mp3 (audio/<track>.mp3) if it's there; otherwise stay quiet rather than play the built-in tune
+  nowPlaying = trackFiles[key] ? startSynth(key) : null;
 }
 function playSong(){ startMusic(); }   // kept for older calls
 // music starts on the first tap, then follows the screens
