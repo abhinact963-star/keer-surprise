@@ -136,6 +136,67 @@
   .typed{font-family:var(--display);font-variation-settings:"SOFT" 100,"opsz" 144;font-size:clamp(1.9rem,6.5vw,3.4rem);line-height:1.2;min-height:2.5em}
   .typed .l1,.typed .l2{display:block}
   .typed .l2{font-style:italic;color:var(--gold)}
+
+  /* ---- envelope opening (intro) ---- */
+  .typed{min-height:0}
+  .ienv{position:relative;width:min(300px,74vw);aspect-ratio:3/2;margin-top:74px;opacity:0;transform:translateY(18px) scale(.94);transition:opacity .9s ease, transform 1s cubic-bezier(.2,.9,.25,1.1);cursor:pointer;-webkit-tap-highlight-color:transparent}
+  .ienv.show{opacity:1;transform:none}
+  .ienv.show:not(.open){animation:ienvBob 3.2s ease-in-out 1s infinite}
+  @keyframes ienvBob{0%,100%{transform:translateY(0) rotate(-1.2deg)}50%{transform:translateY(-7px) rotate(1.2deg)}}
+  .ienv-back,.ienv-front{position:absolute;inset:0;border-radius:10px}
+  .ienv-back{background:linear-gradient(160deg,#F3DFC6,#E2C3A0);box-shadow:0 26px 50px -18px rgba(0,0,0,.6), 0 0 60px -10px rgba(255,216,154,.35)}
+  .ienv-card{position:absolute;left:9%;right:9%;top:8%;height:84%;border-radius:8px;background:#FFFBF5;display:grid;place-content:center;justify-items:center;gap:2px;
+    background-image:radial-gradient(rgba(244,154,184,.35) 1.3px,transparent 1.6px);background-size:16px 16px;box-shadow:0 6px 16px -8px rgba(0,0,0,.35);
+    transition:transform 1.1s cubic-bezier(.2,.9,.25,1.05) .45s}
+  .ienv-card small{font-family:var(--hand);font-size:1.25rem;color:#B0708C;line-height:1}
+  .ienv-card b{font-family:var(--display);font-style:italic;font-weight:600;font-size:clamp(2rem,9vw,2.7rem);color:#D6457F;line-height:1.05}
+  .ienv.open .ienv-card{transform:translateY(-62%)}
+  .ienv-front{overflow:hidden;z-index:2}
+  .ienv-front::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,#F6E6D0,#ECD2B2);clip-path:polygon(0 0,50% 56%,100% 0,100% 100%,0 100%)}
+  .ienv-front::after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,rgba(255,255,255,.35),transparent 60%);clip-path:polygon(0 100%,50% 48%,100% 100%)}
+  .ienv-flap{position:absolute;left:0;right:0;top:0;height:62%;z-index:3;transform-origin:50% 0;transition:transform .7s cubic-bezier(.5,0,.3,1), z-index 0s .35s;
+    background:linear-gradient(180deg,#EED7B8,#E0BF98);clip-path:polygon(0 0,100% 0,50% 100%);filter:drop-shadow(0 3px 3px rgba(120,80,40,.25))}
+  .ienv.open .ienv-flap{transform:rotateX(180deg);z-index:0}
+  .ienv-sprig{position:absolute;left:50%;top:6%;width:44%;transform:translateX(-50%);z-index:4;transition:opacity .4s ease}
+  .ienv-seal{position:absolute;left:50%;top:60%;width:23%;transform:translate(-50%,-50%);z-index:5;transition:transform .5s cubic-bezier(.3,1.6,.5,1), opacity .4s ease;filter:drop-shadow(0 4px 5px rgba(120,20,60,.4))}
+  .ienv.open .ienv-seal{opacity:0;transform:translate(-50%,-50%) scale(.4)}
+  .ienv.open .ienv-sprig{opacity:0}
+  .ienv-wrap{perspective:900px}
+
+  /* ---- the little bear who keeps her company ---- */
+  .bear{position:fixed;z-index:24;left:var(--bx,10px);bottom:var(--by,10px);width:clamp(86px,24vw,128px);pointer-events:none;
+    opacity:0;transform:translateY(60%) scale(.8);transition:opacity .6s ease, transform .8s cubic-bezier(.3,1.5,.5,1), filter 1.2s ease}
+  .bear.in{opacity:1;transform:none}
+  .bear.right{left:auto;right:var(--bx,10px)}
+  .bear.dim{filter:brightness(.34) saturate(.6)}
+  .bear svg{display:block;width:100%;height:auto;overflow:visible}
+  .bear .body-all{transform-origin:50% 95%;animation:bearBreathe 3.4s ease-in-out infinite}
+  @keyframes bearBreathe{0%,100%{transform:rotate(-1.5deg)}50%{transform:rotate(1.5deg) translateY(-1.5px)}}
+  .bear .arm{transition:transform .6s cubic-bezier(.3,1.4,.5,1)}
+  .bear .arm-l{transform-origin:66px 138px}
+  .bear .arm-r{transform-origin:134px 138px}
+  .bear.wave .arm-r{animation:bearWave 1.1s ease-in-out infinite}
+  @keyframes bearWave{0%,100%{transform:rotate(-128deg)}50%{transform:rotate(-98deg)}}
+  .bear.cover .arm-l{transform:rotate(152deg) translate(-3px,2px)}
+  .bear.cover .arm-r{transform:rotate(-152deg) translate(3px,2px)}
+  .bear.cheer .arm-l{transform:rotate(132deg)}
+  .bear.cheer .arm-r{transform:rotate(-132deg)}
+  .bear.cheer .body-all{animation:bearHop .55s ease-in-out infinite}
+  @keyframes bearHop{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
+  .bear.hold .arm-r{transform:rotate(-140deg)}
+  .bear .balloon{opacity:0;transform-origin:150px 96px;transition:opacity .6s ease .3s}
+  .bear.hold .balloon{opacity:1;animation:bearSway 3s ease-in-out infinite}
+  @keyframes bearSway{0%,100%{transform:rotate(-5deg)}50%{transform:rotate(5deg)}}
+  .bear .eyes-shut{opacity:0}
+  .bear.cover .eyes-open,.bear.cheer .eyes-open,.bear.blink .eyes-open{opacity:0}
+  .bear.cheer .eyes-shut,.bear.blink .eyes-shut{opacity:1}
+  .bear-say{position:absolute;left:62%;bottom:86%;white-space:nowrap;font-family:var(--hand);font-size:1.15rem;line-height:1;color:#3A2A4F;background:#FFF6EE;padding:6px 11px;border-radius:14px 14px 14px 3px;
+    box-shadow:0 8px 18px -8px rgba(0,0,0,.45);opacity:0;transform:translateY(6px) scale(.9);transform-origin:0 100%;transition:opacity .35s ease, transform .4s cubic-bezier(.3,1.5,.5,1)}
+  .bear.right .bear-say{left:auto;right:62%;border-radius:14px 14px 3px 14px;transform-origin:100% 100%}
+  .bear-say.show{opacity:1;transform:none}
+  .wish-star{position:fixed;z-index:26;left:0;top:0;font-size:1.7rem;pointer-events:none;filter:drop-shadow(0 0 10px #FFE9A8);animation:wishFly 1.9s cubic-bezier(.3,.1,.3,1) forwards}
+  @keyframes wishFly{0%{transform:translate(50vw,62vh) scale(.5);opacity:0}15%{opacity:1}100%{transform:translate(86vw,6vh) scale(1.25) rotate(160deg);opacity:0}}
+  @media (prefers-reduced-motion:reduce){ .bear .body-all,.bear.wave .arm-r,.bear.hold .balloon,.ienv.show:not(.open),.ienv.show:not(.open) .ienv-seal{animation:none} .wish-star{display:none} }
   .caret{display:inline-block;width:2px;height:.85em;background:var(--gold);margin-left:4px;vertical-align:-.06em;animation:blink 1s steps(1) infinite}
   @keyframes blink{50%{opacity:0}}
 
@@ -735,6 +796,39 @@
 </div>
 
 <!-- countdown -->
+
+<div class="bear" id="bear" aria-hidden="true">
+  <span class="bear-say" id="bearSay"></span>
+  <svg viewBox="0 0 200 250">
+    <defs>
+      <radialGradient id="bFur" cx="42%" cy="34%" r="75%"><stop offset="0" stop-color="#E9B274"/><stop offset=".7" stop-color="#D2925A"/><stop offset="1" stop-color="#B87A48"/></radialGradient>
+      <radialGradient id="bBelly" cx="50%" cy="35%" r="70%"><stop offset="0" stop-color="#FFF1DC"/><stop offset="1" stop-color="#F3D6AE"/></radialGradient>
+      <radialGradient id="bBal" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="#FFC2D6"/><stop offset=".6" stop-color="#F58BB0"/><stop offset="1" stop-color="#DE6A98"/></radialGradient>
+    </defs>
+    <ellipse cx="100" cy="240" rx="58" ry="8" fill="rgba(0,0,0,.22)"/>
+    <g class="body-all">
+      <g class="balloon"><path d="M150 96 Q158 60 168 34" stroke="#E9DCEB" stroke-width="1.6" fill="none"/><ellipse cx="170" cy="4" rx="24" ry="29" fill="url(#bBal)"/><path d="M166 32 l8 0 l-4 7 z" fill="#DE6A98"/><ellipse cx="161" cy="-8" rx="6" ry="9" fill="#fff" opacity=".5" transform="rotate(-24 161 -8)"/></g>
+      <ellipse cx="70" cy="226" rx="25" ry="17" fill="url(#bFur)"/><ellipse cx="130" cy="226" rx="25" ry="17" fill="url(#bFur)"/>
+      <ellipse cx="66" cy="229" rx="12" ry="9" fill="#F3D6AE"/><ellipse cx="134" cy="229" rx="12" ry="9" fill="#F3D6AE"/>
+      <ellipse cx="100" cy="176" rx="50" ry="56" fill="url(#bFur)"/>
+      <ellipse cx="100" cy="184" rx="31" ry="36" fill="url(#bBelly)"/>
+      <path d="M84 136 l16 9 l16 -9 l-4 15 l-12 -6 l-12 6 z" fill="#F0709C"/><circle cx="100" cy="144" r="5.5" fill="#E0457F"/>
+      <circle cx="54" cy="52" r="23" fill="url(#bFur)"/><circle cx="146" cy="52" r="23" fill="url(#bFur)"/>
+      <circle cx="54" cy="54" r="12" fill="#F3C9A0"/><circle cx="146" cy="54" r="12" fill="#F3C9A0"/>
+      <ellipse cx="100" cy="88" rx="60" ry="54" fill="url(#bFur)"/>
+      <ellipse cx="100" cy="106" rx="27" ry="21" fill="url(#bBelly)"/>
+      <ellipse cx="100" cy="98" rx="8.5" ry="6" fill="#4A2E20"/><ellipse cx="97.5" cy="96.5" rx="2.6" ry="1.6" fill="#fff" opacity=".6"/>
+      <path d="M100 104 v6 M100 110 q-8 8 -15 2 M100 110 q8 8 15 2" stroke="#4A2E20" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+      <ellipse cx="60" cy="104" rx="11" ry="7.5" fill="#F7A0B6" opacity=".7"/><ellipse cx="140" cy="104" rx="11" ry="7.5" fill="#F7A0B6" opacity=".7"/>
+      <g class="eyes-open"><ellipse cx="76" cy="84" rx="6.5" ry="8" fill="#2E1B12"/><ellipse cx="124" cy="84" rx="6.5" ry="8" fill="#2E1B12"/><circle cx="78.4" cy="81" r="2.6" fill="#fff"/><circle cx="126.4" cy="81" r="2.6" fill="#fff"/></g>
+      <g class="eyes-shut" stroke="#2E1B12" stroke-width="3.2" fill="none" stroke-linecap="round"><path d="M68 86 q8 -9 16 0"/><path d="M116 86 q8 -9 16 0"/></g>
+      <g class="hat"><path d="M74 44 L104 -14 L130 40 Z" fill="#F49AB8"/><path d="M88 16 L112 2 M80 32 L120 14 M92 44 L126 30" stroke="#FFF6EE" stroke-width="4" opacity=".85"/><circle cx="104" cy="-14" r="8" fill="#FFD89A"/>
+        <path d="M72 43 Q102 54 132 39" stroke="#C9B5F2" stroke-width="7" fill="none" stroke-linecap="round"/></g>
+      <g class="arm arm-l"><ellipse cx="56" cy="164" rx="15" ry="31" fill="url(#bFur)" transform="rotate(16 56 164)"/><ellipse cx="49" cy="188" rx="10" ry="9" fill="#F3D6AE"/></g>
+      <g class="arm arm-r"><ellipse cx="144" cy="164" rx="15" ry="31" fill="url(#bFur)" transform="rotate(-16 144 164)"/><ellipse cx="151" cy="188" rx="10" ry="9" fill="#F3D6AE"/></g>
+    </g>
+  </svg>
+</div>
 <section class="scene" data-id="countdown" data-sky="night">
   <div class="cd-floats" id="cdFloats" aria-hidden="true"></div>
   <div class="stack cd-stack">
@@ -784,7 +878,27 @@
 <section class="scene" data-id="intro" data-sky="night">
   <div class="stack">
     <p class="typed" id="typed" aria-live="polite"></p>
-    <button class="btn next" id="openBtn" type="button">Open it</button>
+    <div class="ienv-wrap">
+      <div class="ienv" id="ienv" role="img" aria-label="A sealed envelope for you">
+        <div class="ienv-back"></div>
+        <div class="ienv-card"><small>for</small><b id="envName"></b></div>
+        <div class="ienv-front"></div>
+        <div class="ienv-flap"></div>
+        <svg class="ienv-sprig" viewBox="0 0 120 70" aria-hidden="true">
+          <g stroke="#7FA06F" stroke-width="2" fill="none" stroke-linecap="round"><path d="M60 68 Q58 40 44 14"/><path d="M60 68 Q60 36 60 8"/><path d="M60 68 Q62 40 76 14"/></g>
+          <g fill="#B79BE6"><ellipse cx="44" cy="16" rx="5" ry="8" transform="rotate(-24 44 16)"/><ellipse cx="60" cy="10" rx="5" ry="9"/><ellipse cx="76" cy="16" rx="5" ry="8" transform="rotate(24 76 16)"/>
+          <ellipse cx="50" cy="30" rx="4" ry="6" transform="rotate(-18 50 30)"/><ellipse cx="70" cy="30" rx="4" ry="6" transform="rotate(18 70 30)"/><ellipse cx="60" cy="26" rx="4" ry="7"/></g>
+          <g fill="#F49AB8"><circle cx="30" cy="40" r="5"/><circle cx="90" cy="40" r="5"/></g><g fill="#FFD89A"><circle cx="30" cy="40" r="2"/><circle cx="90" cy="40" r="2"/></g>
+        </svg>
+        <svg class="ienv-seal" viewBox="0 0 80 74" aria-hidden="true">
+          <path d="M14 46 Q-2 60 8 72 Q22 66 30 50 Z" fill="#C9B5F2"/><path d="M66 46 Q82 60 72 72 Q58 66 50 50 Z" fill="#B79BE6"/>
+          <path d="M40 66 C10 44 4 28 12 16 C20 5 34 8 40 20 C46 8 60 5 68 16 C76 28 70 44 40 66 Z" fill="#E0457F"/>
+          <path d="M40 58 C18 42 13 30 19 21 C24 14 34 16 40 26 C46 16 56 14 61 21 C67 30 62 42 40 58 Z" fill="#F0709C"/>
+          <ellipse cx="27" cy="25" rx="5" ry="3.2" fill="#fff" opacity=".55" transform="rotate(-30 27 25)"/>
+        </svg>
+      </div>
+    </div>
+    <button class="btn next" id="openBtn" type="button">Open your surprise 💌</button>
   </div>
 </section>
 
@@ -830,6 +944,7 @@
       <button class="btn ghost" id="micBtn" type="button" hidden>🎤 Blow into your mic</button>
       <button class="btn ghost" id="blowAll" type="button">Blow them out</button>
       <button class="btn next" id="cutBtn" type="button">Cut the cake 🔪</button>
+      <button class="btn next" id="wishBtn" type="button">I made my wish ✨</button>
       <button class="btn next" id="cakeNext" data-next type="button">Your surprises 🎁</button>
     </div>
   </div>
@@ -1325,6 +1440,7 @@ buildLights();
 addEventListener("resize", buildLights);
 async function lightUp(){
   document.body.classList.add("lit");
+  setTimeout(() => { if (window.bearReady) { bearEl.classList.remove("dim"); bearSet("cheer"); setTimeout(() => bearSet("wave"), 1800); } }, 0);
   // bulbs come on one by one across about 10 seconds
   const bulbs = $$(".bulb"), step = 10000 / Math.max(1, bulbs.length);
   for (const b of bulbs) { b.classList.add("on"); tick(); if (!reduce) await wait(step); }
@@ -1770,6 +1886,7 @@ function go(i){
   document.body.classList.toggle("cd-on", sc.dataset.id === "countdown");
   document.body.classList.toggle("thanks-on", sc.dataset.id === "thanks");
   if (sc.dataset.id !== "scratch" && $("#scrollCue")) $("#scrollCue").hidden = true;
+  if (window.bearReady) bearPose(sc.dataset.id);
   sc.scrollTop = 0;
   document.body.classList.remove("scrolled");
   $("#progress").style.width = (i / (scenes.length - 1) * 100) + "%";
@@ -1899,13 +2016,58 @@ enter.intro = async () => {
     for (const c of [...CONFIG.intro[li]]) { caret.before(c); if (!reduce && !fast) await wait(c === "…" ? 400 : 55); }
     if (!fast) await wait(500);
   }
+  $("#envName").textContent = CONFIG.name;
+  $("#ienv").classList.add("show");
   showNext("#openBtn");
+  bearPose("intro");
 };
-$("#openBtn").addEventListener("click", () => {
+// the envelope: tapping it (or the button) lifts the flap and a card with her name slides out
+let envOpened = false;
+function openEnvelope(){
+  if (envOpened || !$("#ienv").classList.contains("show")) return;
+  envOpened = true;
   startMusic();
-  chime();
-  next();
-});
+  chime(); haptic(20);
+  $("#ienv").classList.add("open");
+  $("#openBtn").classList.remove("show");
+  bearSet("cheer"); bearSay("yay! 🎉", 1500);
+  setTimeout(next, reduce ? 300 : 2300);        // let her read the card with her name before moving on
+}
+$("#openBtn").addEventListener("click", openEnvelope);
+$("#ienv").addEventListener("click", openEnvelope);
+
+/* the bear: one little friend who follows her through the screens */
+const bearEl = $("#bear");
+let bearSayT = 0;
+function bearSet(pose){ ["wave", "cover", "cheer", "hold"].forEach(c => bearEl.classList.toggle(c, c === pose)); }
+function bearSay(text, ms){
+  const b = $("#bearSay"); clearTimeout(bearSayT);
+  if (!text) { b.classList.remove("show"); return; }
+  b.textContent = text; b.classList.add("show");
+  bearSayT = setTimeout(() => b.classList.remove("show"), ms || 2600);
+}
+// where the bear sits on each screen: [pose, side, what it says] (screens not listed have no bear)
+const BEAR = {
+  intro:   ["wave", "left", ""],
+  lights:  ["", "left", ""],
+  cake:    ["wave", "left", "blow! 🕯️"],
+  scratch: ["wave", "right", "ooh, scratch! ✨"],
+  gift:    ["cheer", "left", "open it! 🎁"],
+  finale:  ["hold", "left", ""],
+  thanks:  ["hold", "right", "love you! 🤍"]
+};
+function bearPose(id){
+  const cfg = BEAR[id];
+  bearSay("");
+  if (!cfg || (id === "intro" && !$("#ienv").classList.contains("show"))) { bearEl.classList.remove("in"); return; }
+  bearEl.classList.toggle("right", cfg[1] === "right");
+  bearEl.classList.toggle("dim", id === "lights" && !document.body.classList.contains("lit"));
+  bearSet(cfg[0]);
+  bearEl.classList.add("in");
+  if (cfg[2]) setTimeout(() => { if (scenes[current].dataset.id === id) bearSay(cfg[2], 3200); }, 1600);
+}
+window.bearReady = true;
+setInterval(() => { bearEl.classList.add("blink"); setTimeout(() => bearEl.classList.remove("blink"), 160); }, 4200);
 
 /* lights */
 $("#switch").addEventListener("click", async () => {
@@ -1940,6 +2102,7 @@ function blowOut(c){
   else wished();
 }
 function wished(){
+  bearSet("cheer"); bearSay("yay! 🎉", 1800); setTimeout(() => { if (!bearEl.classList.contains("cover")) bearSet(""); }, 2400);
   $("#cake").classList.add("done");
   $("#blowAll").hidden = true;
   stopMic();
@@ -1958,11 +2121,7 @@ function doCut(){
   cake.classList.add("cutting"); haptic([30, 50, 70]);
   if (cake3d) {
     $("#cakeHint").textContent = "Cutting the first slice for you…";
-    cake3d.cut().then(() => {
-      celebrate(false);
-      $("#cakeHint").textContent = "Close your eyes… your wish is on its way ✨";
-      showNext("#cakeNext");
-    });
+    cake3d.cut().then(askWish);
     return;
   }
   const body = $("#cakeBody"), copy = body.cloneNode(true);
@@ -1972,12 +2131,27 @@ function doCut(){
   body.classList.add("half-l"); copy.classList.add("half-r");
   body.after(copy);
   setTimeout(() => cake.classList.add("cut"), reduce ? 0 : 850);
-  setTimeout(() => {
-    celebrate(false);
-    $("#cakeHint").textContent = "Close your eyes… your wish is on its way ✨";
-    showNext("#cakeNext");
-  }, reduce ? 0 : 1600);
+  setTimeout(askWish, reduce ? 0 : 1600);
 }
+// after the first slice: she closes her eyes and makes a wish, then tells us she has
+const cakeTitle = scenes[byId("cake")].querySelector("h2");
+function askWish(){
+  celebrate(false);
+  cakeTitle.innerHTML = "Close your eyes… <em>make a wish</em>";
+  $("#cakeHint").textContent = "A little wish for the year ahead 🤍";
+  bearSet("cover"); bearSay("no peeking! 🙈", 3000);
+  showNext("#wishBtn");
+}
+$("#wishBtn").addEventListener("click", () => {
+  $("#wishBtn").classList.remove("show");
+  cakeTitle.innerHTML = "Your wish is <em>on its way</em> ✨";
+  $("#cakeHint").textContent = "Somewhere, a tiny star just said yes ⭐";
+  chime(); haptic(20);
+  const st = document.createElement("span"); st.className = "wish-star"; st.textContent = "🌟";
+  document.body.appendChild(st); setTimeout(() => st.remove(), 2000);
+  bearSet("cheer"); bearSay("it'll come true! 💫", 2600);
+  setTimeout(() => showNext("#cakeNext"), reduce ? 0 : 1500);
+});
 $("#cutBtn").addEventListener("click", doCut);
 
 /* swipe to cut: Keer draws a line down the cake; a long enough line cuts it */
