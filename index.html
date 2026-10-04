@@ -171,6 +171,9 @@
   .wish-star{position:fixed;z-index:26;left:0;top:0;font-size:1.7rem;pointer-events:none;filter:drop-shadow(0 0 10px #FFE9A8);animation:wishFly 1.9s cubic-bezier(.3,.1,.3,1) forwards}
   @keyframes wishFly{0%{transform:translate(50vw,62vh) scale(.5);opacity:0}15%{opacity:1}100%{transform:translate(86vw,6vh) scale(1.25) rotate(160deg);opacity:0}}
   @media (prefers-reduced-motion:reduce){ .bear .body-all,.bear.wave .arm-r,.bear.hold .balloon{animation:none} .wish-star{display:none} }
+  .sound-cue{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:46;padding:9px 18px;border-radius:999px;white-space:nowrap;
+    font-family:var(--hand);font-size:1.25rem;color:#3A2A4F;background:rgba(255,246,238,.92);box-shadow:0 12px 26px -10px rgba(0,0,0,.5);pointer-events:none;animation:cueBob 1.4s ease-in-out infinite}
+  .sound-cue[hidden]{display:none}
   .caret{display:inline-block;width:2px;height:.85em;background:var(--gold);margin-left:4px;vertical-align:-.06em;animation:blink 1s steps(1) infinite}
   @keyframes blink{50%{opacity:0}}
 
@@ -790,6 +793,7 @@
 
 <!-- countdown -->
 
+<div class="sound-cue" id="soundCue" hidden>🔊 Tap anywhere for music</div>
 <div class="bear" id="bear" aria-hidden="true">
   <span class="bear-say" id="bearSay"></span>
   <svg viewBox="0 0 200 250">
@@ -1580,7 +1584,7 @@ if (ytOn) {
 // browsers only allow sound from a real tap: every tap nudges YouTube to play, unmuted
 function nudgeYouTube(){
   const f = nowKey && trackFiles[nowKey];                 // a song file the phone refused to start: try again on this tap
-  if (f && f.paused) f.play().catch(() => {});
+  if (f && f.paused) { f.muted = false; f.play().then(() => fadeFile(f, .8, 1200)).catch(() => {}); }
   if (!yt || !ytReady || !ytKey) return;
   try { yt.unMute(); yt.setVolume(80); if (yt.getPlayerState() !== 1) yt.playVideo(); } catch (e) {}
 }
@@ -1591,7 +1595,8 @@ function startSynth(key){
   if (file) {
     file.currentTime = 0; file.volume = 0;
     const run = file._run = (file._run || 0) + 1;         // a later start of the same song cancels this one's fade-out
-    file.play().then(() => { if (file._run === run) fadeFile(file, .8, 1500); }).catch(() => {});
+    file.play().then(() => { if (file._run === run) fadeFile(file, .8, 1500); })
+      .catch(() => { if (!warmed) $("#soundCue").hidden = false; });   // the browser wants a tap first: show the hint
     return { stop(){ fadeFile(file, 0, 1200, () => { if (file._run === run) file.pause(); }); } };
   }
   return null;                                // no built-in tune: silence until a real song plays
@@ -1624,17 +1629,30 @@ function startMusic(){
   if (a.state !== "running") a.resume().catch(() => {});
   if (musicOn) { nudgeYouTube(); return; }
   musicOn = true;
-  // phones only let a sound start from a tap: warm up every song file on this first tap so later screens can play theirs
-  Object.values(trackFiles).forEach(el => {
-    el.muted = true;
-    el.play().then(() => { if (nowPlaying && trackFiles[nowKey] === el) { el.muted = false; return; } el.pause(); el.currentTime = 0; el.muted = false; })
-      .catch(() => { el.muted = false; });
-  });
   playTrack(TRACK_FOR[scenes[current].dataset.id]);
 }
+// phones only let a sound start from a tap: on the first real tap, warm up every other song file so later screens can play theirs
+let warmed = false;
+function warmUp(){
+  if (warmed) return;
+  warmed = true;
+  Object.keys(trackFiles).forEach(k => {
+    const el = trackFiles[k];
+    if (k === nowKey) return;                              // the song that's playing is left alone
+    el.muted = true;
+    el.play().then(() => { if (trackFiles[nowKey] === el) { el.muted = false; return; } el.pause(); el.currentTime = 0; el.muted = false; })
+      .catch(() => { el.muted = false; });
+  });
+}
 // the first tap anywhere starts the music (the countdown has its own tune)
-addEventListener("pointerdown", () => { if (current >= 0) startMusic(); }, { passive: true });
-addEventListener("keydown", () => { if (current >= 0) startMusic(); });
+const onGesture = () => { if (current < 0) return; startMusic(); warmUp(); $("#soundCue").hidden = true; };
+addEventListener("pointerdown", onGesture, { passive: true });
+addEventListener("keydown", onGesture);
+// on the countdown, try to start the tune straight away; if the browser blocks sound before a tap, show a small hint
+setTimeout(() => {
+  if (current < 0 || scenes[current].dataset.id !== "countdown" || musicOn) return;
+  startMusic();
+}, 900);
 
 /* ---------- confetti ---------- */
 // built-in confetti (no download needed, works offline); same options as canvas-confetti
