@@ -1584,7 +1584,7 @@ if (ytOn) {
 // browsers only allow sound from a real tap: every tap nudges YouTube to play, unmuted
 function nudgeYouTube(){
   const f = nowKey && trackFiles[nowKey];                 // a song file the phone refused to start: try again on this tap
-  if (f && f.paused) { f.muted = false; f.play().then(() => fadeFile(f, .8, 1200)).catch(() => {}); }
+  if (f && f.paused) { f.muted = false; f.volume = .8; f.play().catch(() => {}); }   // straight in at full volume, no slow fade
   if (!yt || !ytReady || !ytKey) return;
   try { yt.unMute(); yt.setVolume(80); if (yt.getPlayerState() !== 1) yt.playVideo(); } catch (e) {}
 }
