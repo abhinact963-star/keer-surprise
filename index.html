@@ -1086,6 +1086,8 @@ const CONFIG = {
     vow:      { id: "YjcBE0kDl8A", start: 0, title: "The Life of Ram · Flute Navin (Think Instrumental)" },
     credits:  { id: "4dE_KRs7UOg", start: 0, title: "Pookkal Pookkum · Violin · Roopa Revathi" }
   },
+  // songs that live in the audio folder (audio/<name>.mp3): these play from the site itself, never from YouTube
+  audioFiles: ["dream", "cake", "tender", "memories", "credits"],
 
   askQuestion: "Ni luse thane di? 🙈",
 
@@ -1381,11 +1383,12 @@ const TRACK_FOR = {
   promise: "vow",
   thanks: "credits"
 };
-// optional real audio files per track (audio/dream.mp3, audio/letter.mp3 ...); missing files just stay quiet
+// the songs in the audio folder (CONFIG.audioFiles); if a file can't load, that track falls back to YouTube
 const trackFiles = {};
-TRACKS.forEach(k => {
+(CONFIG.audioFiles || []).forEach(k => {
   const el = new Audio(); el.loop = false; el.preload = "auto";
-  el.addEventListener("canplaythrough", () => { trackFiles[k] = el; }, { once: true });
+  trackFiles[k] = el;
+  el.addEventListener("error", () => { if (trackFiles[k] === el) delete trackFiles[k]; }, { once: true });
   // smooth loop: fade out over the last 2.5 s, restart, fade back in
   el.addEventListener("timeupdate", () => {
     if (el.paused || el.dataset.looping || !el.duration || el.duration < 8) return;
@@ -1394,7 +1397,7 @@ TRACKS.forEach(k => {
       fadeFile(el, 0, 2300, () => {
         if (el.paused) { delete el.dataset.looping; return; }
         el.currentTime = 0;
-        fadeFile(el, .55, 1800, () => { delete el.dataset.looping; });
+        fadeFile(el, .8, 1800, () => { delete el.dataset.looping; });
       });
     }
   });
@@ -1443,6 +1446,8 @@ if (ytOn) {
 }
 // browsers only allow sound from a real tap: every tap nudges YouTube to play, unmuted
 function nudgeYouTube(){
+  const f = nowKey && trackFiles[nowKey];                 // a song file the phone refused to start: try again on this tap
+  if (f && f.paused) f.play().catch(() => {});
   if (!yt || !ytReady || !ytKey) return;
   try { yt.unMute(); yt.setVolume(80); if (yt.getPlayerState() !== 1) yt.playVideo(); } catch (e) {}
 }
@@ -1452,7 +1457,7 @@ function startSynth(key){
   const file = trackFiles[key];
   if (file) {
     file.currentTime = 0; file.volume = 0;
-    file.play().then(() => fadeFile(file, .55, 1500)).catch(() => {});
+    file.play().then(() => fadeFile(file, .8, 1500)).catch(() => {});
     return { stop(){ fadeFile(file, 0, 1200, () => file.pause()); } };
   }
   return null;                                // no built-in tune: silence until a real song plays
@@ -1475,6 +1480,7 @@ function playTrack(key){
     return;
   }
   // your own mp3 (audio/<track>.mp3) if it's there; otherwise stay quiet rather than play the built-in tune
+  if (trackFiles[key]) $("#np").classList.add("off");
   nowPlaying = trackFiles[key] ? startSynth(key) : null;
 }
 function playSong(){ startMusic(); }   // kept for older calls
@@ -1484,6 +1490,12 @@ function startMusic(){
   if (a.state !== "running") a.resume().catch(() => {});
   if (musicOn) { nudgeYouTube(); return; }
   musicOn = true;
+  // phones only let a sound start from a tap: warm up every song file on this first tap so later screens can play theirs
+  Object.values(trackFiles).forEach(el => {
+    el.muted = true;
+    el.play().then(() => { if (nowPlaying && trackFiles[nowKey] === el) { el.muted = false; return; } el.pause(); el.currentTime = 0; el.muted = false; })
+      .catch(() => { el.muted = false; });
+  });
   playTrack(TRACK_FOR[scenes[current].dataset.id]);
 }
 addEventListener("pointerdown", () => { if (current > 0) startMusic(); }, { passive: true });
