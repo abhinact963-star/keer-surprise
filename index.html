@@ -1596,7 +1596,7 @@ function startSynth(key){
     file.currentTime = 0; file.volume = 0;
     const run = file._run = (file._run || 0) + 1;         // a later start of the same song cancels this one's fade-out
     file.play().then(() => { if (file._run === run) fadeFile(file, .8, 1500); })
-      .catch(() => { if (!warmed) $("#soundCue").hidden = false; });   // the browser wants a tap first: show the hint
+      .catch(() => { if (!warmed && scenes[current].dataset.id === "countdown") $("#soundCue").hidden = false; });   // the browser wants a tap first: show the hint
     return { stop(){ fadeFile(file, 0, 1200, () => { if (file._run === run) file.pause(); }); } };
   }
   return null;                                // no built-in tune: silence until a real song plays
@@ -1924,6 +1924,7 @@ function go(i){
   document.body.classList.toggle("thanks-on", sc.dataset.id === "thanks");
   if (sc.dataset.id !== "scratch" && $("#scrollCue")) $("#scrollCue").hidden = true;
   if (window.bearReady) bearPose(sc.dataset.id);
+  if (sc.dataset.id !== "countdown" && $("#soundCue")) $("#soundCue").hidden = true;
   sc.scrollTop = 0;
   document.body.classList.remove("scrolled");
   $("#progress").style.width = (i / (scenes.length - 1) * 100) + "%";
