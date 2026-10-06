@@ -2645,40 +2645,12 @@ const sealedAt = (() => { try { return localStorage.getItem("keer-promise-v1"); 
 enter.promise = async () => {
   if (promiseShown) return;
   promiseShown = true;
-  if (sealedAt) {
-    // already sealed on an earlier visit: only the sealed envelope shows; tap it to read again
-    $$(".pl").forEach(l => l.classList.add("in"));
-    $("#promiseSig").classList.add("show");
-    $("#promiseCard").classList.add("sealed");
-    $("#sealBtn").hidden = true;
-    showSealedEnvelope(false);
-    setTimeout(() => { if (current === byId("promise")) showNext(goThanks); }, 600);
-    return;
-  }
-  await wait(reduce ? 0 : 1400);
-  // type each line out like the letter, keeping **bold** parts bold
-  for (const [k, raw] of CONFIG.promise.entries()) {
-    const line = $$(".pl")[k], full = line.innerHTML;
-    line.classList.add("in");
-    if (reduce) continue;
-    const parts = raw.split(/(\*\*.+?\*\*)/).filter(Boolean).map(t => t.startsWith("**") ? { b: true, t: t.slice(2, -2) } : { b: false, t });
-    line.innerHTML = "";
-    for (const part of parts) {
-      const el = part.b ? document.createElement("b") : document.createElement("span");
-      line.appendChild(el);
-      let typed = "";
-      for (const ch of part.t) {
-        typed += ch; el.textContent = typed;
-        await wait(ch === "." || ch === "!" ? 240 : ch === "," || ch === ":" ? 140 : 30);
-      }
-    }
-    line.innerHTML = full;
-    await wait(350);
-  }
-  $("#promiseSig").classList.add("show");
-  await wait(reduce ? 0 : 1900);
-  $("#promiseHint").textContent = "Press and hold to make it official.";
-  showNext("#sealBtn");
+  // the promise text is never shown: the screen opens straight on the sealed envelope
+  if (!sealedAt) { try { localStorage.setItem("keer-promise-v1", new Date().toISOString()); } catch (e) {} }
+  $("#promiseCard").classList.add("sealed");
+  $("#sealBtn").hidden = true;
+  showSealedEnvelope(false);
+  setTimeout(() => { if (current === byId("promise")) showNext(goThanks); }, 600);
 };
 const goThanks = $("#goThanks");
 /* the promise lives in an envelope once it's sealed */
