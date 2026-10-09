@@ -2645,7 +2645,34 @@ const sealedAt = (() => { try { return localStorage.getItem("keer-promise-v1"); 
 enter.promise = async () => {
   if (promiseShown) return;
   promiseShown = true;
-  // the promise text is never shown: the screen opens straight on the sealed envelope
+  // Abhii's own link (the site address ending in #abhi) shows the promise letter; nothing gets sealed or saved
+  if (location.hash === "#abhi") {
+    await wait(reduce ? 0 : 1400);
+    // type each line out like the letter, keeping **bold** parts bold
+    for (const [k, raw] of CONFIG.promise.entries()) {
+      const line = $$(".pl")[k], full = line.innerHTML;
+      line.classList.add("in");
+      if (reduce) continue;
+      const parts = raw.split(/(\*\*.+?\*\*)/).filter(Boolean).map(t => t.startsWith("**") ? { b: true, t: t.slice(2, -2) } : { b: false, t });
+      line.innerHTML = "";
+      for (const part of parts) {
+        const el = part.b ? document.createElement("b") : document.createElement("span");
+        line.appendChild(el);
+        let typed = "";
+        for (const ch of part.t) {
+          typed += ch; el.textContent = typed;
+          await wait(ch === "." || ch === "!" ? 240 : ch === "," || ch === ":" ? 140 : 30);
+        }
+      }
+      line.innerHTML = full;
+      await wait(350);
+    }
+    $("#promiseSig").classList.add("show");
+    $("#sealBtn").hidden = true;
+    showNext(goThanks);
+    return;
+  }
+  // for everyone else the promise text is never shown: the screen opens straight on the sealed envelope
   if (!sealedAt) { try { localStorage.setItem("keer-promise-v1", new Date().toISOString()); } catch (e) {} }
   $("#promiseCard").classList.add("sealed");
   $("#sealBtn").hidden = true;
@@ -2717,7 +2744,7 @@ const h = location.hash.slice(1);
 try { if (h === "open" || h === "test") localStorage.setItem("keer-dev", "1"); } catch (e) {}
 const devDevice = (() => { try { return localStorage.getItem("keer-dev") === "1"; } catch (e) { return false; } })();
 const birthdayPassed = Date.now() >= new Date(CONFIG.birthday).getTime();
-let jump = /^\d+$/.test(h) ? +h - 1 : byId(h === "sealtest" ? "promise" : h);
+let jump = /^\d+$/.test(h) ? +h - 1 : byId(h === "sealtest" || h === "abhi" ? "promise" : h);
 if (!birthdayPassed && !devDevice) jump = -1;
 if (jump === 1) go(1);
 else if (jump >= 2) {
